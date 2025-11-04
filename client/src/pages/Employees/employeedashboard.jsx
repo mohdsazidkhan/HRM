@@ -4,7 +4,7 @@ import { HandleGetEmployeeSelf } from "@/redux/Thunks/EmployeeSelfThunk";
 import { Loading } from "@/components/common/loading";
 import { EmployeeCreateLeaveDialogBox, EmployeeCreateRequestDialogBox } from "@/components/common/Dashboard/dialogboxes";
 import { Link } from "react-router-dom";
-import { HandleUpdateHRAttendance, HandleCreateHRAttendance } from "@/redux/Thunks/HRAttendanceThunk";
+import { HandleCheckIn, HandleCheckOut, HandleGetTodayAttendance } from "@/redux/Thunks/EmployeeAttendanceThunk";
 import { formatDateTimeDDMMYYYYatHHMM } from "@/utils/commonhandler";
 import { KeyDetailsBox } from "@/components/common/Dashboard/keydetailboxes";
 import { DataTable } from "@/components/common/Dashboard/datatable";
@@ -14,31 +14,31 @@ import { Button } from "@/components/ui/button";
 export const EmployeeDashboard = () =>{
     const dispatch = useDispatch();
     const { data, isLoading, error } = useSelector((state) => state.EmployeeSelfReducer);
+    const { todayData } = useSelector((state) => state.EmployeeAttendanceReducer);
     
     useEffect(() => {
         dispatch(HandleGetEmployeeSelf());
+        dispatch(HandleGetTodayAttendance());
     }, [dispatch]);
 
     if (isLoading) return <Loading />;
 
-    const ensureAttendanceAndUpdate = async (status) => {
-        const currentdate = new Date().toISOString().split("T")[0]
-        let attendanceID = data?.attendance && (typeof data.attendance === 'object' ? data.attendance._id : data.attendance)
-        if (!attendanceID && data?._id) {
-            const res = await dispatch(HandleCreateHRAttendance({ data: { employeeID: data._id } })).unwrap().catch(() => null)
-            attendanceID = res?.data?._id
-        }
-        if (attendanceID) {
-            await dispatch(HandleUpdateHRAttendance({ data: { attendanceID, status, currentdate } }))
-            dispatch(HandleGetEmployeeSelf())
-        }
+    const handleCheckIn = async () => {
+        await dispatch(HandleCheckIn({})).unwrap().catch(() => {})
+        dispatch(HandleGetEmployeeSelf())
+        dispatch(HandleGetTodayAttendance())
+    }
+    const handleCheckOut = async () => {
+        await dispatch(HandleCheckOut()).unwrap().catch(() => {})
+        dispatch(HandleGetEmployeeSelf())
+        dispatch(HandleGetTodayAttendance())
     }
 
-    const handleCheckIn = () => { ensureAttendanceAndUpdate("Present") }
-    const handleCheckOut = () => { ensureAttendanceAndUpdate("Checkout") }
+    const currentStatus = todayData?.status || "No Check-In";
+    const hasActiveCheckIn = currentStatus === "Check-In";
 
     const DataArray = [
-        { icon: Clock, dataname: "Attendance", data: data?.attendance?.status ? 1 : 0, path: null },
+        { icon: Clock, dataname: "Check-ins Today", data: todayData?.checkInCount ?? (todayData?.logs?.length || 0), path: "/employee/dashboard/attendance" },
         { icon: Calendar, dataname: "Leaves", data: data?.leaverequest?.length || 0, path: "/employee/dashboard/leaves" },
         { icon: FileText, dataname: "Requests", data: data?.generaterequest?.length || 0, path: "/employee/dashboard/requests" },
     ]
@@ -109,7 +109,7 @@ export const EmployeeDashboard = () =>{
                     <div className="flex items-center justify-between mb-2">
                         <p className="font-semibold">Attendance Status</p>
                     </div>
-                    {data?.attendance ? (
+                    {todayData ? (
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -117,16 +117,10 @@ export const EmployeeDashboard = () =>{
                                         <Clock className="w-5 h-5 text-blue-600" />
                                     </div>
                                     <div>
-                                        <p className={`font-medium px-2 py-1 rounded text-sm ${
-                                            data.attendance?.status === "Present" ? "bg-green-100 text-green-700" :
-                                            "bg-gray-100 text-gray-700"
-                                        }`}>
-                                            {data.attendance?.status || "Not Specified"}
-                                        </p>
-                                        <p className="text-sm text-gray-500">Current Status</p>
+                                        <p className={`font-medium px-2 py-1 rounded text-sm ${hasActiveCheckIn ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}>{currentStatus}</p>
                                     </div>
                                 </div>
-                                {data?.attendance?.status === "Present" ? (
+                                {hasActiveCheckIn ? (
                                     <Button variant="secondary" size="default" onClick={handleCheckOut}>
                                         Check Out
                                     </Button>
@@ -136,9 +130,9 @@ export const EmployeeDashboard = () =>{
                                     </Button>
                                 )}
                             </div>
-                            {data?.attendance?.updatedAt && (
+                            {todayData?.updatedAt && (
                                 <div className="text-xs text-gray-500 pl-14">
-                                    Last Update: {formatDateTimeDDMMYYYYatHHMM(data.attendance.updatedAt)}
+                                    Last Update: <strong>{formatDateTimeDDMMYYYYatHHMM(todayData.updatedAt)}</strong>
                                 </div>
                             )}
                         </div>
@@ -154,9 +148,6 @@ export const EmployeeDashboard = () =>{
             </div>
             <div className="grid min-[250px]:grid-cols-1 gap-3 mt-3">
                 <div className="rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur p-3">
-                    <div className="flex items-center justify-between mb-2">
-                        <p className="font-semibold">Recent Notices</p>
-                    </div>
                     <DataTable noticedata={data} />
                 </div>
             </div>

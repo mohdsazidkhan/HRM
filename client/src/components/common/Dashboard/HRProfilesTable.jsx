@@ -9,12 +9,15 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { UpdateHRProfileDialogBox, DeleteHRProfileDialogBox } from "./dialogboxes";
+;
 
 export const HRProfilesTable = ({ profiles = [] }) => {
     const [query, setQuery] = useState("");
     const [sortBy, setSortBy] = useState({ key: "firstname", dir: "asc" });
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const isMobile = (typeof window !== "undefined" && window.innerWidth < 768) ? "grid" : "table";
+    const [viewMode, setViewMode] = useState(isMobile ? "grid" : "table");
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -65,6 +68,14 @@ export const HRProfilesTable = ({ profiles = [] }) => {
                     onChange={(e) => { setPage(1); setQuery(e.target.value); }}
                     className="max-w-xs"
                 />
+                {/* View toggles before size dropdown */}
+                <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">View:</span>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "list" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("list")}>List</button>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "grid" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("grid")}>Grid</button>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "table" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("table")}>Table</button>
+                </div>
+
                 <div className="ml-auto flex items-center gap-2">
                     <span className="text-sm text-gray-500">Rows</span>
                     <select
@@ -80,7 +91,7 @@ export const HRProfilesTable = ({ profiles = [] }) => {
                 </div>
             </div>
 
-            <div className="rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur">
+            <div className={`rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur overflow-x-auto ${viewMode !== "table" ? "hidden" : "block"}`}>
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -107,6 +118,38 @@ export const HRProfilesTable = ({ profiles = [] }) => {
                     </TableBody>
                 </Table>
             </div>
+
+            {viewMode === "list" && (
+                <div className="divide-y rounded-2xl ring-1 ring-gray-200/60 bg-white/80 backdrop-blur">
+                    {pageData.map((hr) => (
+                        <div key={hr._id} className="p-3 space-y-1">
+                            <div className="font-medium">{hr.firstname} {hr.lastname}</div>
+                            <div className="text-xs text-gray-500">{hr.email || "-"}</div>
+                            <div className="text-xs text-gray-500">{hr.department?.name || "-"}</div>
+                            <div className="pt-1 flex justify-end gap-2">
+                                <UpdateHRProfileDialogBox profile={hr} />
+                                <DeleteHRProfileDialogBox HRID={hr._id} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {viewMode === "grid" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {pageData.map((hr) => (
+                        <div key={hr._id} className="rounded-xl ring-1 ring-gray-200 bg-white p-3 space-y-1">
+                            <div className="font-medium">{hr.firstname} {hr.lastname}</div>
+                            <div className="text-xs text-gray-500">{hr.email || "-"}</div>
+                            <div className="text-xs text-gray-500">{hr.department?.name || "-"}</div>
+                            <div className="pt-1 flex justify-end gap-2">
+                                <UpdateHRProfileDialogBox profile={hr} />
+                                <DeleteHRProfileDialogBox HRID={hr._id} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-500">Page {currentPage} of {totalPages} (Total {sorted.length})</div>

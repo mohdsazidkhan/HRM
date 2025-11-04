@@ -2,23 +2,15 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { HandleCreateHRSalary, HandleDeleteHRSalary, HandleUpdateHRSalary } from "../../../redux/Thunks/HRSalaryThunk.js"
-import { HandleCreateHRAttendance, HandleDeleteHRAttendance, HandleUpdateHRAttendance } from "../../../redux/Thunks/HRAttendanceThunk.js"
-import { HandleCreateHRInterviewInsight, HandleDeleteHRInterviewInsight, HandleUpdateHRInterviewInsight } from "../../../redux/Thunks/HRInterviewInsightsThunk.js"
+import { HandleDeleteHRAttendance } from "../../../redux/Thunks/HRAttendanceThunk.js"
 import { HandleCreateHRRequest, HandleUpdateHRRequestContent, HandleUpdateHRRequestStatus, HandleDeleteHRRequest } from "../../../redux/Thunks/HRRequestsThunk.js"
 import { HandleUpdateHRProfile, HandleDeleteHRProfile } from "../../../redux/Thunks/HRProfilesThunk.js"
-import { HandleCreateHREvent, HandleDeleteHREvent, HandleUpdateHREvent } from "../../../redux/Thunks/HRCalendarThunk.js"
-import { HandleCreateHRBalance, HandleDeleteHRBalance, HandleUpdateHRBalance } from "../../../redux/Thunks/HRBalanceThunk.js"
-import { HandleCreateHRApplicant, HandleDeleteHRApplicant, HandleUpdateHRApplicant } from "../../../redux/Thunks/HRApplicantsThunk.js"
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
     DialogClose,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { ErrorPopup } from "../error-popup.jsx"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect, useRef } from "react"
 import { CommonStateHandler } from "../../../utils/commonhandler.js"
@@ -37,15 +29,15 @@ import {
     CommandInput,
     CommandItem,
     CommandList,
-    CommandSeparator,
-    CommandShortcut,
 } from "@/components/ui/command"
 import { fetchEmployeesIDs } from "../../../redux/Thunks/EmployeesIDsThunk.js"
 import { HandleGetHRDepartments } from "../../../redux/Thunks/HRDepartmentPageThunk.js"
 import { HandleCreateHRNotice, HandleDeleteHRNotice, HandleUpdateHRNotice } from "../../../redux/Thunks/HRNoticesThunk.js"
-import { HandleCreateHRRecruitment, HandleDeleteHRRecruitment, HandleUpdateHRRecruitment } from "../../../redux/Thunks/HRRecruitmentThunk.js"
 import { HandleCreateHRLeave, HandleDeleteHRLeave, HandleUpdateHRLeaveByHR } from "../../../redux/Thunks/HRLeavesThunk.js"
 import { useSelector as useAppSelector } from "react-redux"
+import { HandleGetHRSalarySets, HandlePostHRSalarySets, HandlePatchHRSalarySets, HandleDeleteHRSalarySets } from "../../../redux/Thunks/HRSalarySetPageThunk.js"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 
 
 export const AddEmployeesDialogBox = () => {
@@ -857,157 +849,6 @@ export const UpdateNoticeDialogBox = ({ notice }) => {
     )
 }
 
-export const CreateRecruitmentDialogBox = () => {
-    const dispatch = useDispatch()
-    const DepartmentsState = useSelector((state) => state.HRDepartmentPageReducer)
-    const [formdata, setformdata] = useState({
-        jobtitle: "",
-        description: "",
-        department: "",
-    })
-
-    useEffect(() => {
-        if (!DepartmentsState.data) dispatch(HandleGetHRDepartments({ apiroute: "GETALL" }))
-    }, [])
-
-    const onChange = (e) => setformdata({ ...formdata, [e.target.name]: e.target.value })
-
-    const canSubmit = () => formdata.jobtitle.trim() && formdata.description.trim() && formdata.department
-
-    const submit = () => {
-        const payload = {
-            title: formdata.jobtitle,
-            description: formdata.description,
-            departmentID: formdata.department,
-        }
-        dispatch(HandleCreateHRRecruitment({ data: payload }))
-        setformdata({ jobtitle: "", description: "", department: "" })
-    }
-
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Create Recruitment</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[45vw] 2xl:max-w-[40vw]">
-                <div className="flex flex-col gap-4">
-                    <h1 className="font-bold text-2xl">Create Recruitment</h1>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-1">
-                            <label className="font-bold">Job Title</label>
-                            <input className="border-2 border-gray-700 rounded px-2 py-1" name="jobtitle" value={formdata.jobtitle} onChange={onChange} />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label className="font-bold">Department</label>
-                            <select className="border-2 border-gray-700 rounded px-2 py-1" name="department" value={formdata.department} onChange={onChange}>
-                                <option value="">Select department</option>
-                                {Array.isArray(DepartmentsState.data) && DepartmentsState.data.map((d) => (
-                                    <option key={d._id} value={d._id}>{d.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="sm:col-span-2 flex flex-col gap-1">
-                            <label className="font-bold">Description</label>
-                            <textarea className="border-2 border-gray-700 rounded px-2 py-1 h-[120px]" name="description" value={formdata.description} onChange={onChange} />
-                        </div>
-                    </div>
-                    <div className="flex justify-center">
-                        {canSubmit() ? (
-                            <DialogClose asChild>
-                                <Button onClick={submit}>Create</Button>
-                            </DialogClose>
-                        ) : (
-                            <Button disabled>Fill required fields</Button>
-                        )}
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const DeleteRecruitmentDialogBox = ({ recruitmentID }) => {
-    const dispatch = useDispatch()
-    const onDelete = () => dispatch(HandleDeleteHRRecruitment({ recruitmentID }))
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Delete</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                <div className="flex flex-col justify-center items-center gap-4">
-                    <p className="text-lg font-bold min-[250px]:text-center">Are you sure you want to delete this recruitment?</p>
-                    <div className="flex gap-2">
-                        <DialogClose asChild>
-                            <Button onClick={onDelete}>Delete</Button>
-                        </DialogClose>
-                        <DialogClose asChild>
-                            <Button>Cancel</Button>
-                        </DialogClose>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const UpdateRecruitmentDialogBox = ({ recruitment }) => {
-    const dispatch = useDispatch()
-    const DepartmentsState = useSelector((state) => state.HRDepartmentPageReducer)
-    const [formdata, setformdata] = useState({
-        recruitmentID: recruitment?._id,
-        UpdatedData: {
-            title: recruitment?.title || recruitment?.jobtitle || "",
-            description: recruitment?.description || "",
-            departmentID: recruitment?.department?._id || "",
-            status: recruitment?.status || "Open",
-        }
-    })
-
-    useEffect(() => {
-        if (!DepartmentsState.data) dispatch(HandleGetHRDepartments({ apiroute: "GETALL" }))
-    }, [])
-
-    const onChange = (e) => setformdata({ ...formdata, UpdatedData: { ...formdata.UpdatedData, [e.target.name]: e.target.value } })
-    const submit = () => dispatch(HandleUpdateHRRecruitment({ data: formdata }))
-
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Update</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[45vw] 2xl:max-w-[40vw]">
-                <div className="flex flex-col gap-4">
-                    <h1 className="font-bold text-2xl">Update Recruitment</h1>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-1">
-                            <label className="font-bold">Job Title</label>
-                            <input className="border-2 border-gray-700 rounded px-2 py-1" name="title" value={formdata.UpdatedData.title} onChange={onChange} />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label className="font-bold">Department</label>
-                            <select className="border-2 border-gray-700 rounded px-2 py-1" name="departmentID" value={formdata.UpdatedData.departmentID} onChange={onChange}>
-                                <option value="">Select department</option>
-                                {Array.isArray(DepartmentsState.data) && DepartmentsState.data.map((d) => (
-                                    <option key={d._id} value={d._id}>{d.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="sm:col-span-2 flex flex-col gap-1">
-                            <label className="font-bold">Description</label>
-                            <textarea className="border-2 border-gray-700 rounded px-2 py-1 h-[120px]" name="description" value={formdata.UpdatedData.description} onChange={onChange} />
-                        </div>
-                    </div>
-                    <div className="flex justify-center">
-                        <DialogClose asChild>
-                            <Button onClick={submit}>Save</Button>
-                        </DialogClose>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
 
 export const CreateLeaveDialogBox = () => {
     const dispatch = useDispatch()
@@ -1349,64 +1190,7 @@ export const DeleteSalaryDialogBox = ({ salaryID }) => {
     )
 }
 
-export const CreateAttendanceDialogBox = () => {
-    const dispatch = useDispatch()
-    const EmployeesIDState = useSelector((state) => state.EMployeesIDReducer)
-    const [employeeID, setEmployeeID] = useState("")
-    const submit = () => dispatch(HandleCreateHRAttendance({ data: { employeeID } }))
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button onClick={() => dispatch(fetchEmployeesIDs({ apiroute: "GETALL" }))}>Initialize Attendance</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                <div className="flex flex-col gap-3">
-                    <label className="font-bold">Employee</label>
-                    <select className="border-2 border-gray-700 rounded px-2 py-1" value={employeeID} onChange={(e) => setEmployeeID(e.target.value)}>
-                        <option value="">Select employee</option>
-                        {Array.isArray(EmployeesIDState.data) && EmployeesIDState.data.map((e) => (
-                            <option key={e._id} value={e._id}>{e.firstname} {e.lastname}</option>
-                        ))}
-                    </select>
-                    <div className="flex justify-center">
-                        <DialogClose asChild>
-                            <Button className="bg-blue-700 border-2 border-blue-700 text-white font-bold hover:bg-white hover:text-blue-700" onClick={submit} disabled={!employeeID}>Create</Button>
-                        </DialogClose>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const UpdateAttendanceDialogBox = ({ attendance }) => {
-    const dispatch = useDispatch()
-    const [status, setStatus] = useState(attendance?.status || "Not Specified")
-    const submit = () => dispatch(HandleUpdateHRAttendance({ data: { attendanceID: attendance._id, status } }))
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Update</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[30vw] 2xl:max-w-[25vw]">
-                <div className="flex flex-col gap-3">
-                    <label className="font-bold">Status</label>
-                    <select className="border-2 border-gray-700 rounded px-2 py-1" value={status} onChange={(e) => setStatus(e.target.value)}>
-                        <option>Not Specified</option>
-                        <option>Present</option>
-                        <option>Absent</option>
-                        <option>Leave</option>
-                    </select>
-                    <div className="flex justify-center">
-                        <DialogClose asChild>
-                            <Button className="bg-blue-700 border-2 border-blue-700 text-white font-bold hover:bg-white hover:text-blue-700" onClick={submit}>Save</Button>
-                        </DialogClose>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
+// CreateAttendanceDialogBox and UpdateAttendanceDialogBox removed in favor of per-log check-in/out flow
 
 export const DeleteAttendanceDialogBox = ({ attendanceID }) => {
     const dispatch = useDispatch()
@@ -1425,73 +1209,6 @@ export const DeleteAttendanceDialogBox = ({ attendanceID }) => {
                         </DialogClose>
                         <DialogClose asChild>
                             <Button className="btn-sm btn-blue-700 text-md border-2 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md bg-green-700 border-green-700 hover:bg-transparent hover:text-green-700">Cancel</Button>
-                        </DialogClose>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const CreateInterviewDialogBox = () => {
-    const dispatch = useDispatch()
-    const [formdata, setformdata] = useState({ applicantID: "", interviewerID: "" })
-    const onChange = (e) => setformdata({ ...formdata, [e.target.name]: e.target.value })
-    const submit = () => dispatch(HandleCreateHRInterviewInsight({ data: formdata }))
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Create Interview</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                <div className="grid gap-3">
-                    <div className="flex flex-col gap-1"><label className="font-bold">Applicant ID</label><input name="applicantID" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.applicantID} onChange={onChange} /></div>
-                    <div className="flex flex-col gap-1"><label className="font-bold">Interviewer HR ID</label><input name="interviewerID" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.interviewerID} onChange={onChange} /></div>
-                    <div className="flex justify-center"><DialogClose asChild><Button onClick={submit} disabled={!formdata.applicantID || !formdata.interviewerID}>Create</Button></DialogClose></div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const UpdateInterviewDialogBox = ({ interview }) => {
-    const dispatch = useDispatch()
-    const [formdata, setformdata] = useState({ interviewID: interview?._id, UpdatedData: {} })
-    const onChange = (e) => setformdata({ ...formdata, UpdatedData: { ...formdata.UpdatedData, [e.target.name]: e.target.value } })
-    const submit = () => dispatch(HandleUpdateHRInterviewInsight({ data: formdata }))
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Update</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                <div className="grid gap-3">
-                    <div className="flex flex-col gap-1"><label className="font-bold">Applicant ID</label><input name="applicant" className="border-2 border-gray-700 rounded px-2 py-1" onChange={onChange} placeholder={interview?.applicant?._id} /></div>
-                    <div className="flex flex-col gap-1"><label className="font-bold">Interviewer HR ID</label><input name="interviewer" className="border-2 border-gray-700 rounded px-2 py-1" onChange={onChange} placeholder={interview?.interviewer?._id} /></div>
-                    <div className="flex justify-center"><DialogClose asChild><Button onClick={submit}>Save</Button></DialogClose></div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const DeleteInterviewDialogBox = ({ interviewID }) => {
-    const dispatch = useDispatch()
-    const onDelete = () => dispatch(HandleDeleteHRInterviewInsight({ interviewID }))
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Delete</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                <div className="flex flex-col justify-center items-center gap-4">
-                    <p className="text-lg font-bold min-[250px]:text-center">Are you sure you want to delete this interview?</p>
-                    <div className="flex gap-2">
-                        <DialogClose asChild>
-                            <Button onClick={onDelete}>Delete</Button>
-                        </DialogClose>
-                        <DialogClose asChild>
-                            <Button>Cancel</Button>
                         </DialogClose>
                     </div>
                 </div>
@@ -1650,204 +1367,6 @@ export const DeleteHRProfileDialogBox = ({ HRID }) => {
     )
 }
 
-export const CreateEventDialogBox = () => {
-    const dispatch = useDispatch()
-    const [formdata, setformdata] = useState({ title: "", date: "", description: "" })
-    const onChange = (e) => setformdata({ ...formdata, [e.target.name]: e.target.value })
-    const submit = () => dispatch(HandleCreateHREvent({ data: formdata }))
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Create Event</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[40vw] 2xl:max-w-[35vw]">
-                <div className="grid gap-3">
-                    <input name="title" className="border-2 border-gray-700 rounded px-2 py-1" placeholder="Title" value={formdata.title} onChange={onChange} />
-                    <input type="date" name="date" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.date} onChange={onChange} />
-                    <textarea name="description" className="border-2 border-gray-700 rounded px-2 py-1 h-[120px]" value={formdata.description} onChange={onChange} />
-                    <div className="flex justify-center"><DialogClose asChild><Button className="bg-blue-700 border-2 border-blue-700 text-white font-bold hover:bg-white hover:text-blue-700" onClick={submit} disabled={!formdata.title.trim() || !formdata.date}>Create</Button></DialogClose></div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const UpdateEventDialogBox = ({ event }) => {
-    const dispatch = useDispatch()
-    const [formdata, setformdata] = useState({ eventID: event?._id, UpdatedData: { title: event?.title || "", date: event?.date?.split('T')[0] || "", description: event?.description || "" } })
-    const onChange = (e) => setformdata({ ...formdata, UpdatedData: { ...formdata.UpdatedData, [e.target.name]: e.target.value } })
-    const submit = () => dispatch(HandleUpdateHREvent({ data: formdata }))
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Update</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[40vw] 2xl:max-w-[35vw]">
-                <div className="grid gap-3">
-                    <input name="title" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.UpdatedData.title} onChange={onChange} />
-                    <input type="date" name="date" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.UpdatedData.date} onChange={onChange} />
-                    <textarea name="description" className="border-2 border-gray-700 rounded px-2 py-1 h-[120px]" value={formdata.UpdatedData.description} onChange={onChange} />
-                    <div className="flex justify-center"><DialogClose asChild><Button className="bg-blue-700 border-2 border-blue-700 text-white font-bold hover:bg-white hover:text-blue-700" onClick={submit}>Save</Button></DialogClose></div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const DeleteEventDialogBox = ({ eventID }) => {
-    const dispatch = useDispatch()
-    const onDelete = () => dispatch(HandleDeleteHREvent({ eventID }))
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Delete</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                <div className="flex flex-col justify-center items-center gap-4">
-                    <p className="text-lg font-bold min-[250px]:text-center">Are you sure you want to delete this event?</p>
-                    <div className="flex gap-2">
-                        <DialogClose asChild>
-                            <Button className="btn-sm btn-blue-700 text-md border-2 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md bg-red-700 border-red-700 hover:bg-transparent hover:text-red-700" onClick={onDelete}>Delete</Button>
-                        </DialogClose>
-                        <DialogClose asChild>
-                            <Button className="btn-sm btn-blue-700 text-md border-2 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md bg-green-700 border-green-700 hover:bg-transparent hover:text-green-700">Cancel</Button>
-                        </DialogClose>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const CreateBalanceDialogBox = () => {
-    const dispatch = useDispatch()
-    const [formdata, setformdata] = useState({ amount: "", description: "" })
-    const onChange = (e) => setformdata({ ...formdata, [e.target.name]: e.target.value })
-    const submit = () => dispatch(HandleCreateHRBalance({ data: formdata }))
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Add Balance</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[30vw] 2xl:max-w-[25vw]">
-                <div className="grid gap-3">
-                    <input name="amount" className="border-2 border-gray-700 rounded px-2 py-1" placeholder="Amount" value={formdata.amount} onChange={onChange} />
-                    <input name="description" className="border-2 border-gray-700 rounded px-2 py-1" placeholder="Description" value={formdata.description} onChange={onChange} />
-                    <div className="flex justify-center"><DialogClose asChild><Button onClick={submit} disabled={!formdata.amount}>Create</Button></DialogClose></div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const UpdateBalanceDialogBox = ({ balance }) => {
-    const dispatch = useDispatch()
-    const [formdata, setformdata] = useState({ balanceID: balance?._id, amount: balance?.amount || "", description: balance?.description || "" })
-    const onChange = (e) => setformdata({ ...formdata, [e.target.name]: e.target.value })
-    const submit = () => dispatch(HandleUpdateHRBalance({ data: formdata }))
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Update</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[30vw] 2xl:max-w-[25vw]">
-                <div className="grid gap-3">
-                    <input name="amount" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.amount} onChange={onChange} />
-                    <input name="description" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.description} onChange={onChange} />
-                    <div className="flex justify-center"><DialogClose asChild><Button onClick={submit}>Save</Button></DialogClose></div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const DeleteBalanceDialogBox = ({ balanceID }) => {
-    const dispatch = useDispatch()
-    const onDelete = () => dispatch(HandleDeleteHRBalance({ balanceID }))
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>Delete</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                <div className="flex flex-col justify-center items-center gap-4">
-                    <p className="text-lg font-bold min-[250px]:text-center">Are you sure you want to delete this balance?</p>
-                    <div className="flex gap-2">
-                        <DialogClose asChild>
-                            <Button onClick={onDelete}>Delete</Button>
-                        </DialogClose>
-                        <DialogClose asChild>
-                            <Button>Cancel</Button>
-                        </DialogClose>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const CreateApplicantDialogBox = () => {
-    const dispatch = useDispatch()
-    const [formdata, setformdata] = useState({ firstname: "", lastname: "", email: "" })
-    const onChange = (e) => setformdata({ ...formdata, [e.target.name]: e.target.value })
-    const submit = () => dispatch(HandleCreateHRApplicant({ data: formdata }))
-    return (
-        <Dialog>
-            <DialogTrigger className="min-[250px]:text-sm sm:text-lg min-[250px]:px-2 min-[250px]:py-1 sm:px-4 sm:py-2 bg-blue-700 font-bold text-white rounded-lg border-2 border-blue-700 hover:bg-white hover:text-blue-700">Create Applicant</DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                <div className="grid gap-3">
-                    <input name="firstname" className="border-2 border-gray-700 rounded px-2 py-1" placeholder="First Name" value={formdata.firstname} onChange={onChange} />
-                    <input name="lastname" className="border-2 border-gray-700 rounded px-2 py-1" placeholder="Last Name" value={formdata.lastname} onChange={onChange} />
-                    <input name="email" className="border-2 border-gray-700 rounded px-2 py-1" placeholder="Email" value={formdata.email} onChange={onChange} />
-                    <div className="flex justify-center"><DialogClose asChild><Button className="bg-blue-700 border-2 border-blue-700 text-white font-bold hover:bg-white hover:text-blue-700" onClick={submit} disabled={!formdata.firstname || !formdata.lastname || !formdata.email}>Create</Button></DialogClose></div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const UpdateApplicantDialogBox = ({ applicant }) => {
-    const dispatch = useDispatch()
-    const [formdata, setformdata] = useState({ applicantID: applicant?._id, UpdatedData: { firstname: applicant?.firstname || "", lastname: applicant?.lastname || "" } })
-    const onChange = (e) => setformdata({ ...formdata, UpdatedData: { ...formdata.UpdatedData, [e.target.name]: e.target.value } })
-    const submit = () => dispatch(HandleUpdateHRApplicant({ data: formdata }))
-    return (
-        <Dialog>
-            <DialogTrigger className="btn-sm btn-blue-700 text-md border-2 border-blue-800 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md hover:bg-blue-800 hover:text-white">Update</DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                <div className="grid gap-3">
-                    <input name="firstname" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.UpdatedData.firstname} onChange={onChange} />
-                    <input name="lastname" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.UpdatedData.lastname} onChange={onChange} />
-                    <div className="flex justify-center"><DialogClose asChild><Button className="bg-blue-700 border-2 border-blue-700 text-white font-bold hover:bg-white hover:text-blue-700" onClick={submit}>Save</Button></DialogClose></div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export const DeleteApplicantDialogBox = ({ applicantID }) => {
-    const dispatch = useDispatch()
-    const onDelete = () => dispatch(HandleDeleteHRApplicant({ applicantID }))
-    return (
-        <Dialog>
-            <DialogTrigger className="btn-sm btn-blue-700 text-md border-2 border-blue-800 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md hover:bg-blue-800 hover:text-white">Delete</DialogTrigger>
-            <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
-                <div className="flex flex-col justify-center items-center gap-4">
-                    <p className="text-lg font-bold min-[250px]:text-center">Are you sure you want to delete this applicant?</p>
-                    <div className="flex gap-2">
-                        <DialogClose asChild>
-                            <Button className="btn-sm btn-blue-700 text-md border-2 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md bg-red-700 border-red-700 hover:bg-transparent hover:text-red-700" onClick={onDelete}>Delete</Button>
-                        </DialogClose>
-                        <DialogClose asChild>
-                            <Button className="btn-sm btn-blue-700 text-md border-2 min-[250px]:px-2 min-[250px]:py-1 sm:px-1 sm:py-0.5 xl:px-2 xl:py-1 rounded-md bg-green-700 border-green-700 hover:bg-transparent hover:text-green-700">Cancel</Button>
-                        </DialogClose>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
 export const RemoveEmployeeFromDepartmentDialogBox = ({ DepartmentName, DepartmentID, EmployeeID }) => {
     const dispatch = useDispatch()
 
@@ -1874,5 +1393,136 @@ export const RemoveEmployeeFromDepartmentDialogBox = ({ DepartmentName, Departme
                 </DialogContent>
             </Dialog>
         </div>
+    )
+}
+
+export const CreateSalarySetDialogBox = () => {
+    const { toast } = useToast()
+    const dispatch = useDispatch()
+    const [formdata, setformdata] = useState({ name: "", type: "Earning", calcType: "Flat", description: "", isActive: true })
+    const typeOptions = ["Earning","Deduction"]
+    const calcTypeOptions = ["Percentage","Flat"]
+    const onChange = (e) => {
+        const { name, value, type, checked } = e.target
+        setformdata((p) => ({ ...p, [name]: type === 'checkbox' ? checked : value }))
+    }
+    const submit = () => {
+        if (!formdata.name.trim()) {
+            toast({ title: 'Missing Fields', description: 'Name is required' })
+            return
+        }
+        dispatch(HandlePostHRSalarySets({ data: formdata }))
+        setformdata({ name: "", type: "Earning", calcType: "Flat", description: "", isActive: true })
+    }
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button>Create Salary Set</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[315px] sm:max-w-[50vw] 2xl:max-w-[45vw]">
+                <div className="grid gap-3">
+                    <h1 className="font-bold text-2xl">Create Salary Set</h1>
+                    <div className="flex flex-col gap-1"><Label htmlFor="name">Name</Label><Input id="name" name="name" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.name} onChange={onChange} /></div>
+                    <div className="flex flex-col gap-1"><Label htmlFor="type">Salary Set Type</Label>
+                        <select id="type" name="type" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.type} onChange={onChange}>
+                            {typeOptions.map((t) => (<option key={t} value={t}>{t}</option>))}
+                        </select>
+                    </div>
+                    <div className="flex flex-col gap-1"><Label htmlFor="calcType">Calculation Type</Label>
+                        <select id="calcType" name="calcType" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.calcType} onChange={onChange}>
+                            {calcTypeOptions.map((t) => (<option key={t} value={t}>{t}</option>))}
+                        </select>
+                    </div>
+                    <div className="flex flex-col gap-1"><Label htmlFor="description">Description</Label><Input id="description" name="description" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.description} onChange={onChange} /></div>
+                    <label className="inline-flex items-center gap-2"><input type="checkbox" name="isActive" checked={formdata.isActive} onChange={onChange} /><span className="font-medium">Active</span></label>
+                    <div className="flex justify-center gap-2">
+                        {formdata.name.trim().length > 0 ? (
+                            <DialogClose asChild><Button onClick={submit}>Create</Button></DialogClose>
+                        ) : (
+                            <Button disabled onClick={() => toast({ title: 'Missing Fields', description: 'Name is required' })}>Create</Button>
+                        )}
+                        <DialogClose asChild>
+                            <Button variant="secondary">Cancel</Button>
+                        </DialogClose>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+export const UpdateSalarySetDialogBox = ({ salarySet }) => {
+    const dispatch = useDispatch()
+    const [formdata, setformdata] = useState({ 
+        id: salarySet?._id, 
+        name: salarySet?.name || '', 
+        type: salarySet?.type || 'Earning', 
+        calcType: salarySet?.calcType || 'Flat', 
+        description: salarySet?.description || '', 
+        isActive: salarySet?.isActive ?? true 
+    })
+    const typeOptions = ["Earning","Deduction"]
+    const calcTypeOptions = ["Percentage","Flat"]
+    const onChange = (e) => {
+        const { name, value, type, checked } = e.target
+        setformdata((p) => ({ ...p, [name]: type === 'checkbox' ? checked : value }))
+    }
+    const submit = () => {
+        if (!formdata.name.trim()) return
+        dispatch(HandlePatchHRSalarySets({ data: formdata }))
+    }
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="outline">Update</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[315px] sm:max-w-[50vw] 2xl:max-w-[45vw]">
+                <div className="grid gap-3">
+                    <h1 className="font-bold text-2xl">Update Salary Set</h1>
+                    <div className="flex flex-col gap-1"><Label htmlFor="name">Name</Label><Input id="name" name="name" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.name} onChange={onChange} /></div>
+                    <div className="flex flex-col gap-1"><Label htmlFor="type">Salary Set Type</Label>
+                        <select id="type" name="type" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.type} onChange={onChange}>
+                            {typeOptions.map((t) => (<option key={t} value={t}>{t}</option>))}
+                        </select>
+                    </div>
+                    <div className="flex flex-col gap-1"><Label htmlFor="calcType">Calculation Type</Label>
+                        <select id="calcType" name="calcType" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.calcType} onChange={onChange}>
+                            {calcTypeOptions.map((t) => (<option key={t} value={t}>{t}</option>))}
+                        </select>
+                    </div>
+                    <div className="flex flex-col gap-1"><Label htmlFor="description">Description</Label><Input id="description" name="description" className="border-2 border-gray-700 rounded px-2 py-1" value={formdata.description} onChange={onChange} /></div>
+                    <label className="inline-flex items-center gap-2"><input type="checkbox" name="isActive" checked={formdata.isActive} onChange={onChange} /><span className="font-medium">Active</span></label>
+                    <div className="flex justify-center gap-2">
+                        <DialogClose asChild>
+                            <Button onClick={submit} disabled={!formdata.name.trim()}>Save</Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                            <Button variant="secondary">Cancel</Button>
+                        </DialogClose>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+export const DeleteSalarySetDialogBox = ({ salarySetID, salarySetName }) => {
+    const dispatch = useDispatch()
+    const onDelete = () => dispatch(HandleDeleteHRSalarySets({ id: salarySetID }))
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="destructive">Delete</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
+                <div className="flex flex-col justify-center items-center gap-4">
+                    <p className="text-lg font-bold min-[250px]:text-center">{`Are you sure you want to delete ${salarySetName} set?`}</p>
+                    <div className="flex gap-2">
+                        <DialogClose asChild><Button variant="destructive" onClick={onDelete}>Delete</Button></DialogClose>
+                        <DialogClose asChild><Button variant="secondary">Cancel</Button></DialogClose>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
     )
 }

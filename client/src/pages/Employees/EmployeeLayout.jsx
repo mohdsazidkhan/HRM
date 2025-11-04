@@ -1,4 +1,4 @@
-import { SidebarProvider } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { EmployeeSidebar } from "@/components/ui/EmployeeSidebar"
 import { Outlet, Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
@@ -14,11 +14,11 @@ export const EmployeeLayout = () => {
         <div className="min-h-screen bg-gray-50">
             <SidebarProvider>
                 <EmployeeSidebar />
+                <Topbar title="Employee Dashboard" right={right} showSidebarToggle={true} />
+                <SidebarInset className="mainContent">
+                    <Outlet />
+                </SidebarInset>
             </SidebarProvider>
-            <Topbar title="Employee Dashboard" right={right} />
-            <div className="mainContent">
-                <Outlet />
-            </div>
         </div>
     )
 }

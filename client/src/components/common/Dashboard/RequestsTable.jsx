@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+;
 
 export const RequestsTable = ({ requests = [], onUpdate }) => {
     const [query, setQuery] = useState("");
@@ -16,6 +17,8 @@ export const RequestsTable = ({ requests = [], onUpdate }) => {
     const [sortBy, setSortBy] = useState({ key: "createdAt", dir: "desc" });
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const isMobile = (typeof window !== "undefined" && window.innerWidth < 768) ? "grid" : "table";
+    const [viewMode, setViewMode] = useState(isMobile ? "grid" : "table");
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -76,6 +79,14 @@ export const RequestsTable = ({ requests = [], onUpdate }) => {
                     <option value="rejected">Rejected</option>
                     <option value="pending">Pending</option>
                 </select>
+                {/* View toggles before size dropdown */}
+                <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">View:</span>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "list" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("list")}>List</button>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "grid" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("grid")}>Grid</button>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "table" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("table")}>Table</button>
+                </div>
+
                 <div className="ml-auto flex items-center gap-2">
                     <span className="text-sm text-gray-500">Rows</span>
                     <select
@@ -91,7 +102,7 @@ export const RequestsTable = ({ requests = [], onUpdate }) => {
                 </div>
             </div>
 
-            <div className="rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur">
+            <div className={`rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur overflow-x-auto ${viewMode !== "table" ? "hidden" : "block"}`}>
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -125,6 +136,37 @@ export const RequestsTable = ({ requests = [], onUpdate }) => {
                     </TableBody>
                 </Table>
             </div>
+
+            {viewMode === "list" && (
+                <div className="divide-y rounded-2xl ring-1 ring-gray-200/60 bg-white/80 backdrop-blur">
+                    {pageData.map((rq) => (
+                        <div key={rq._id} className="p-3 space-y-1">
+                            <div className="font-medium">{rq.requesttitle || "-"}</div>
+                            <div className="text-xs text-gray-500">{rq.createdAt ? new Date(rq.createdAt).toLocaleDateString() : "-"} • {rq.status || "Pending"}</div>
+                            <div className="text-xs text-gray-500 truncate" title={rq.requestconent || "-"}>{rq.requestconent || "-"}</div>
+                            <div className="pt-1 flex justify-end gap-2">
+                                <Button variant="outline" size="default" onClick={() => onUpdate && onUpdate(rq)}>Update</Button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {viewMode === "grid" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {pageData.map((rq) => (
+                        <div key={rq._id} className="rounded-xl ring-1 ring-gray-200 bg-white p-3 space-y-1">
+                            <div className="font-medium">{rq.requesttitle || "-"}</div>
+                            <div className="text-xs text-gray-500">{rq.createdAt ? new Date(rq.createdAt).toLocaleDateString() : "-"}</div>
+                            <div className="text-xs text-gray-500">{rq.status || "Pending"}</div>
+                            <div className="text-xs text-gray-500 truncate" title={rq.requestconent || "-"}>{rq.requestconent || "-"}</div>
+                            <div className="pt-1 flex justify-end gap-2">
+                                <Button variant="outline" size="default" onClick={() => onUpdate && onUpdate(rq)}>Update</Button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-500">Page {currentPage} of {totalPages} (Total {sorted.length})</div>

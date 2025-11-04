@@ -1,12 +1,13 @@
 import { Employee } from "../models/Employee.model.js"
 import { Salary } from "../models/Salary.model.js"
+import { SalarySet } from "../models/SalarySet.model.js"
 
 export const HandleCreateSalary = async (req, res) => {
     try {
-        const { employeeID, basicpay, bonusePT, deductionPT, duedate, currency } = req.body
+        const { employeeID, currency, salarySets } = req.body
 
-        if (!employeeID || !basicpay || !bonusePT || !deductionPT || !duedate || !currency) {
-            return res.status(400).json({ success: false, message: "All fields are required" })
+        if (!employeeID || !currency || !Array.isArray(salarySets)) {
+            return res.status(400).json({ success: false, message: "employeeID, currency and salarySets are required" })
         }
 
         const employee = await Employee.findById(employeeID)
@@ -15,18 +16,59 @@ export const HandleCreateSalary = async (req, res) => {
             return res.status(404).json({ success: false, message: "Employee not found" })
         }
 
-        const bonuses = (basicpay * bonusePT) / 100
-        const deductions = (basicpay * deductionPT) / 100
-        const netpay = (basicpay + bonuses) - deductions
+        let bonuses = 0
+        let deductions = 0
+        let computedBasicPay = 0
+        let usedSets = []
+        if (Array.isArray(salarySets) && salarySets.length > 0) {
+            const ids = salarySets.map(s => s.id)
+            const sets = await SalarySet.find({ _id: { $in: ids }, organizationID: req.ORGID, isActive: true })
+            const idToInput = new Map(salarySets.map(s => [String(s.id), Number(s.value) || 0]))
+            for (const set of sets) {
+                const inputValue = idToInput.get(String(set._id)) || 0
+                // find base for percentage as Basic Pay input (by name)
+                if (/^basic\s*pay$/i.test(set.name)) {
+                    computedBasicPay = set.calcType === 'Percentage' ? 0 : inputValue
+                    // if percentage for basic pay (rare), treat as flat using provided input
+                }
+            }
+            // second pass to accumulate
+            for (const set of sets) {
+                const inputValue = idToInput.get(String(set._id)) || 0
+                const base = computedBasicPay || 0
+                const amount = set.calcType === 'Percentage' ? (base * inputValue) / 100 : inputValue
+                usedSets.push({ set: set._id, value: inputValue, amount })
+                if (set.type === 'Earning') {
+                    if (/^basic\s*pay$/i.test(set.name)) {
+                        // already counted as basic pay
+                    } else {
+                        bonuses += amount
+                    }
+                } else {
+                    deductions += amount
+                }
+            }
+            if (computedBasicPay === 0) {
+                // try fallback: if there is an earning named Basic Salary
+                const candidate = sets.find(s => /^basic\s*(salary|pay)$/i.test(s.name))
+                if (candidate) computedBasicPay = idToInput.get(String(candidate._id)) || 0
+            }
+        }
+        if (computedBasicPay === 0) {
+            return res.status(400).json({ success: false, message: "Basic Pay is required in salarySets" })
+        } else {
+            // no-op
+        }
+        const netpay = (computedBasicPay + bonuses) - deductions
 
         const salarycheck = await Salary.findOne({
             employee: employeeID,
-            basicpay: basicpay,
+            basicpay: computedBasicPay,
             bonuses: bonuses,
             deductions: deductions,
             netpay: netpay,
             currency: currency,
-            duedate: new Date(duedate),
+            organizationID: req.ORGID
         })
 
         if (salarycheck) {
@@ -35,12 +77,12 @@ export const HandleCreateSalary = async (req, res) => {
 
         const salary = await Salary.create({
             employee: employeeID,
-            basicpay: basicpay,
+            basicpay: computedBasicPay,
             bonuses: bonuses,
             deductions: deductions,
             netpay: netpay,
             currency: currency,
-            duedate: new Date(duedate),
+            salarySets: usedSets,
             organizationID: req.ORGID
         })
 
@@ -56,7 +98,9 @@ export const HandleCreateSalary = async (req, res) => {
 
 export const HandleAllSalary = async (req, res) => {
     try {
-        const salary = await Salary.find({ organizationID: req.ORGID }).populate("employee", "firstname lastname department")
+        const salary = await Salary.find({ organizationID: req.ORGID })
+            .populate("employee", "firstname lastname department")
+            .populate({ path: 'salarySets.set', select: 'name type calcType' })
         return res.status(200).json({ success: true, message: "All salary records retrieved successfully", data: salary })
 
     } catch (error) {
@@ -67,7 +111,9 @@ export const HandleAllSalary = async (req, res) => {
 export const HandleSalary = async (req, res) => {
     try {
         const { salaryID } = req.params
-        const salary = await Salary.findOne({ _id: salaryID, organizationID: req.ORGID }).populate("employee", "firstname lastname department")
+        const salary = await Salary.findOne({ _id: salaryID, organizationID: req.ORGID })
+            .populate("employee", "firstname lastname department")
+            .populate({ path: 'salarySets.set', select: 'name type calcType' })
         return res.status(200).json({ success: true, message: "salary found", data: salary })
     } catch (error) {
         return res.status(500).json({ success: false, error: error, message: "Internal Server Error" })
@@ -75,21 +121,48 @@ export const HandleSalary = async (req, res) => {
 }
 
 export const HandleUpdateSalary = async (req, res) => {
-    const { salaryID, basicpay, bonusePT, deductionPT, duedate, currency, status } = req.body
+    const { salaryID, currency, status, salarySets } = req.body
     try {
 
-        const bonuses = (basicpay * bonusePT) / 100
-        const deductions = (basicpay * deductionPT) / 100
-        const netpay = (basicpay + bonuses) - deductions
+        let bonuses = 0
+        let deductions = 0
+        let computedBasicPay = 0
+        if (Array.isArray(salarySets) && salarySets.length > 0) {
+            const ids = salarySets.map(s => s.id)
+            const sets = await SalarySet.find({ _id: { $in: ids }, organizationID: req.ORGID, isActive: true })
+            const idToInput = new Map(salarySets.map(s => [String(s.id), Number(s.value) || 0]))
+            for (const set of sets) {
+                if (/^basic\s*pay$/i.test(set.name)) {
+                    computedBasicPay = set.calcType === 'Percentage' ? 0 : (idToInput.get(String(set._id)) || 0)
+                }
+            }
+            for (const set of sets) {
+                const inputValue = idToInput.get(String(set._id)) || 0
+                const base = computedBasicPay || 0
+                const amount = set.calcType === 'Percentage' ? (base * inputValue) / 100 : inputValue
+                usedSets.push({ set: set._id, value: inputValue, amount })
+                if (set.type === 'Earning') {
+                    if (!/^basic\s*pay$/i.test(set.name)) bonuses += amount
+                } else {
+                    deductions += amount
+                }
+            }
+        }
+        if (computedBasicPay === 0) {
+            return res.status(400).json({ success: false, message: "Basic Pay is required in salarySets" })
+        } else {
+            // no-op
+        }
+        const netpay = (computedBasicPay + bonuses) - deductions
 
         const salary = await Salary.findByIdAndUpdate(salaryID, {
-            basicpay: basicpay,
+            basicpay: computedBasicPay,
             bonuses: bonuses,
             deductions: deductions,
             netpay: netpay,
             currency: currency,
-            duedate: new Date(duedate),
-            status: status
+            status: status,
+            salarySets: usedSets
         }, { new: true })
 
         if (!salary) {

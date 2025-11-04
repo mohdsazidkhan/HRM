@@ -9,7 +9,7 @@ export const KeyDetailsBox = ({icon: Icon, image, dataname, data}) => {
                     </div>
                     <div className="flex flex-col">
                         <p className="text-3xl sm:text-2xl xl:text-4xl font-extrabold tracking-tight">{data}</p>
-                        <p className="text-sm sm:text-xs xl:text-sm font-medium text-gray-500">{dataname}</p>
+                        <p className="text-sm sm:text-xs xl:text-sm font-medium text-gray-500">{dataname?.toUpperCase()}</p>
                     </div>
                 </div>
 

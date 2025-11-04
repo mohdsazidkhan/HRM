@@ -8,21 +8,33 @@ const AttendanceSchema = new Schema({
         required: true,
         ref: "Employee"
     },
-    status: {
-        type: String,
+    date: {
+        type: Date,
         required: true,
-        enum: ['Present', 'Absent', 'Not Specified']
+        // Store only date part (YYYY-MM-DD), ignore time
+        set: function(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
     },
-    attendancelog: [
+    logs: [
         {
-            logdate: {
+            checkIn: {
                 type: Date,
                 required: true
             },
-            logstatus: {
+            checkOut: {
+                type: Date,
+                default: null
+            },
+            location: {
                 type: String,
-                required: true,
-                enum: ['Present', 'Absent', 'Not Specified']
+                default: null
+            },
+            device: {
+                type: String,
+                default: null
             }
         }
     ],
@@ -31,5 +43,8 @@ const AttendanceSchema = new Schema({
         ref: "Organization"
     }
 }, { timestamps: true });
+
+// Compound index to ensure one document per employee per day
+AttendanceSchema.index({ employee: 1, date: 1 }, { unique: true });
 
 export const Attendance = mongoose.model("Attendance", AttendanceSchema)

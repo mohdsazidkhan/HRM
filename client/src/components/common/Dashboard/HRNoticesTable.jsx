@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { UpdateNoticeDialogBox, DeleteNoticeDialogBox } from "./dialogboxes";
+;
 
 export const HRNoticesTable = ({ notices = [] }) => {
     const [query, setQuery] = useState("");
@@ -16,6 +17,8 @@ export const HRNoticesTable = ({ notices = [] }) => {
     const [sortBy, setSortBy] = useState({ key: "title", dir: "asc" });
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const isMobile = (typeof window !== "undefined" && window.innerWidth < 768) ? "grid" : "table";
+    const [viewMode, setViewMode] = useState(isMobile ? "grid" : "table");
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -77,6 +80,14 @@ export const HRNoticesTable = ({ notices = [] }) => {
                     <option value="employees">Employees</option>
                     <option value="departments">Departments</option>
                 </select>
+                {/* View toggles before size dropdown */}
+                <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">View:</span>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "list" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("list")}>List</button>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "grid" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("grid")}>Grid</button>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "table" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("table")}>Table</button>
+                </div>
+
                 <div className="ml-auto flex items-center gap-2">
                     <span className="text-sm text-gray-500">Rows</span>
                     <select
@@ -92,7 +103,7 @@ export const HRNoticesTable = ({ notices = [] }) => {
                 </div>
             </div>
 
-            <div className="rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur">
+            <div className={`rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur overflow-x-auto ${viewMode !== "table" ? "hidden" : "block"}`}>
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -126,6 +137,44 @@ export const HRNoticesTable = ({ notices = [] }) => {
                     </TableBody>
                 </Table>
             </div>
+
+            {viewMode === "list" && (
+                <div className="divide-y rounded-2xl ring-1 ring-gray-200/60 bg-white/80 backdrop-blur">
+                    {pageData.map((n) => {
+                        const createdBy = n.createdby ? `${n.createdby.firstname || ""} ${n.createdby.lastname || ""}`.trim() : "System";
+                        return (
+                            <div key={n._id} className="p-3 space-y-1">
+                                <div className="font-medium">{n.title || "-"}</div>
+                                <div className="text-xs text-gray-500">Audience: {n.audience || "All"}</div>
+                                <div className="text-xs text-gray-500">By: {createdBy}</div>
+                                <div className="pt-1 flex justify-end gap-2">
+                                    <UpdateNoticeDialogBox notice={n} />
+                                    <DeleteNoticeDialogBox noticeID={n._id} />
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            )}
+
+            {viewMode === "grid" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {pageData.map((n) => {
+                        const createdBy = n.createdby ? `${n.createdby.firstname || ""} ${n.createdby.lastname || ""}`.trim() : "System";
+                        return (
+                            <div key={n._id} className="rounded-xl ring-1 ring-gray-200 bg-white p-3 space-y-1">
+                                <div className="font-medium">{n.title || "-"}</div>
+                                <div className="text-xs text-gray-500">{n.audience || "All"}</div>
+                                <div className="text-xs text-gray-500">{createdBy}</div>
+                                <div className="pt-1 flex justify-end gap-2">
+                                    <UpdateNoticeDialogBox notice={n} />
+                                    <DeleteNoticeDialogBox noticeID={n._id} />
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            )}
 
             <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-500">Page {currentPage} of {totalPages} (Total {sorted.length})</div>

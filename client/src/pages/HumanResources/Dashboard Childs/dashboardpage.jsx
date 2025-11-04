@@ -58,9 +58,6 @@ export const HRDashboardPage = () => {
                     <SalaryChart balancedata={DashboardState.data} />
                 </div>
                 <div className="rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur p-3">
-                    <div className="flex items-center justify-between mb-2">
-                        <p className="font-semibold">Recent Notices</p>
-                    </div>
                     <DataTable noticedata={DashboardState.data} />
                 </div>
             </div>

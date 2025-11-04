@@ -27,14 +27,7 @@ const SalarySchema = new Schema({
         type: String,
         required: true
     },
-    duedate: {
-        type: Date,
-        required: true,
-        validate: {
-            validator: (v) => v >= new Date(),
-            message: "Due date must be in the future",
-        }
-    },
+    // duedate removed as per requirement
     paymentdate: {
         type: Date,
     },
@@ -44,6 +37,11 @@ const SalarySchema = new Schema({
         enum: ["Pending", "Delayed", "Paid"],
         default: "Pending",
     },
+    salarySets: [{
+        set: { type: mongoose.Schema.Types.ObjectId, ref: 'SalarySet', required: true },
+        value: { type: Number, required: true },
+        amount: { type: Number, required: true }
+    }],
     organizationID: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Organization"

@@ -1,3 +1,4 @@
+import { useState } from "react"
 import {
     Table,
     TableBody,
@@ -148,8 +149,10 @@ export const DataTable = ({ noticedata }) => {
         // Handle admin format: noticedata.notices (array)
         // Handle employee format: noticedata.notice (array)
         const noticeArray = noticedata.notices || noticedata.notice || []
-        for (let index = 0; index < noticeArray.length; index++) {
-            const notice = noticeArray[index]
+        // Sort by createdAt desc if available and limit to 5 recent
+        const recent = [...noticeArray].sort((a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0)).slice(0, 5)
+        for (let index = 0; index < recent.length; index++) {
+            const notice = recent[index]
             const createdBy = notice.createdby 
                 ? `${notice.createdby.firstname || ""} ${notice.createdby.lastname || ""}`.trim()
                 : "System"
@@ -159,6 +162,7 @@ export const DataTable = ({ noticedata }) => {
                     noticeTitle: notice.title || "No Title",
                     noticeAudience: notice.audience || "All",
                     noticeCreatedBy: createdBy,
+                    noticeCreatedAt: notice.createdAt || null,
                 }
             )
         }
@@ -166,20 +170,30 @@ export const DataTable = ({ noticedata }) => {
 
     console.log("Notice array", Notices)
 
+    const initialMode = (typeof window !== "undefined" && window.innerWidth < 768) ? "grid" : "table"
+    const [viewMode, setViewMode] = useState(initialMode)
+
     return (
         <div className="overflow-auto h-full">
-            <div className="mx-3 my-2">
-                <div className="flex items-center justify-between">
-                    <p className="text-xl xl:text-2xl font-bold">Recent Notices</p>
+            <div className="flex items-center justify-between px-4 mb-2">
+                <div className="font-semibold">Recent Notices</div>
+                <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">View:</span>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "list" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("list")}>List</button>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "grid" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("grid")}>Grid</button>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "table" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("table")}>Table</button>
                 </div>
             </div>
-            <div className="rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur mx-2">
+
+            {/* Table view */}
+            <div className={`rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur mx-2 overflow-x-auto ${viewMode !== "table" ? "hidden" : "block"}`}>
                 <Table>
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-[100px] text-gray-500">ID</TableHead>
                             <TableHead className="text-gray-500">Title</TableHead>
                             <TableHead className="text-gray-500">Audience</TableHead>
+                            <TableHead className="text-gray-500">Date</TableHead>
                             <TableHead className="text-right text-gray-500">Created By</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -193,12 +207,42 @@ export const DataTable = ({ noticedata }) => {
                                         {Notice.noticeAudience}
                                     </span>
                                 </TableCell>
+                                <TableCell>{Notice.noticeCreatedAt ? new Date(Notice.noticeCreatedAt).toLocaleDateString() : "-"}</TableCell>
                                 <TableCell className="text-right">{Notice.noticeCreatedBy}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
             </div>
+
+            {/* List view */}
+            {viewMode === "list" && (
+                <div className="divide-y rounded-2xl ring-1 ring-gray-200/60 bg-white/80 backdrop-blur mx-2">
+                    {Notices.map((n) => (
+                        <div key={n.noticeID} className="p-3 flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                                <div className="font-medium truncate">{n.noticeTitle}</div>
+                                <div className="text-xs text-gray-500">{n.noticeAudience} • {n.noticeCreatedAt ? new Date(n.noticeCreatedAt).toLocaleDateString() : "-"}</div>
+                            </div>
+                            <div className="shrink-0 text-xs text-gray-500">{n.noticeCreatedBy}</div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Grid view */}
+            {viewMode === "grid" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mx-2">
+                    {Notices.map((n) => (
+                        <div key={n.noticeID} className="rounded-xl ring-1 ring-gray-200 bg-white p-3 space-y-1">
+                            <div className="font-medium">{n.noticeTitle}</div>
+                            <div className="text-xs text-gray-500">{n.noticeAudience}</div>
+                            <div className="text-xs text-gray-500">{n.noticeCreatedAt ? new Date(n.noticeCreatedAt).toLocaleDateString() : "-"}</div>
+                            <div className="text-xs text-gray-500">{n.noticeCreatedBy}</div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     )
 }

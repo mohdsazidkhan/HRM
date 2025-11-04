@@ -65,7 +65,9 @@ export const EmployeeMyRequestsPage = () => {
                 </div>
             </CardShell>
 
-            <RequestsTable requests={Array.isArray(data?.generaterequest) ? data.generaterequest : []} onUpdate={updateRequest} />
+            <div className="overflow-x-auto rounded-2xl">
+                <RequestsTable requests={Array.isArray(data?.generaterequest) ? data.generaterequest : []} onUpdate={updateRequest} />
+            </div>
             {error?.status && (
                 <div className="p-3 text-red-600 rounded-lg bg-red-50">{error.message}</div>
             )}

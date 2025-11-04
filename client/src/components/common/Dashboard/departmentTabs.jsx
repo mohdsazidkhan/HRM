@@ -44,6 +44,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { HandleGetHRDepartments } from "../../../redux/Thunks/HRDepartmentPageThunk"
 import { Loading } from "../loading.jsx"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
 import { useToast } from "../../../hooks/use-toast.js"
 import { EmployeesIDSDialogBox } from "./dialogboxes.jsx"
 
@@ -203,6 +204,8 @@ export const ComboDropDown = ({ DepartmentData, CurrentDepartment, SetCurrentDep
 export const DepartmentContent = ({ CurrentDepartmentData }) => {
     const table_headings_employees = ["Full Name", "Email", "Contact Number", "Remove Employee"]
     const table_headings_notice = ["Title", "Audience", "Createdby", "View Notice"]
+    const initialMode = (typeof window !== "undefined" && window.innerWidth < 768) ? "grid" : "table"
+    const [viewMode, setViewMode] = useState(initialMode)
 
     return (
         <>
@@ -222,12 +225,20 @@ export const DepartmentContent = ({ CurrentDepartmentData }) => {
                             <span className="text-blue-700">{CurrentDepartmentData.notice.length} Notice</span>
                         </TabsTrigger>
                     </TabsList>
-                    <div className="edd-employees-dialog-box">
-                        <EmployeesIDSDialogBox DepartmentID={CurrentDepartmentData._id} />
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500">View:</span>
+                            <button className={`px-2 py-1 rounded border text-sm ${viewMode === "list" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("list")}>List</button>
+                            <button className={`px-2 py-1 rounded border text-sm ${viewMode === "grid" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("grid")}>Grid</button>
+                            <button className={`px-2 py-1 rounded border text-sm ${viewMode === "table" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("table")}>Table</button>
+                        </div>
+                        <div className="edd-employees-dialog-box">
+                            <EmployeesIDSDialogBox DepartmentID={CurrentDepartmentData._id} />
+                        </div>
                     </div>
                 </div>
                 <TabsContent value="account" className={`rounded-lg border border-gray-200 bg-white/80 backdrop-blur min-[250px]:h-[100%] md:h-[85%] min-[1650px]:h-[90%] overflow-auto p-2`}>
-                    <div className="rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur">
+                    <div className={`rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur overflow-x-auto ${viewMode !== "table" ? "hidden" : "block"}`}>
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -251,6 +262,38 @@ export const DepartmentContent = ({ CurrentDepartmentData }) => {
                             </TableBody>
                         </Table>
                     </div>
+
+                    {viewMode === "list" && (
+                        <div className="divide-y rounded-2xl ring-1 ring-gray-200/60 bg-white/80 backdrop-blur">
+                            {CurrentDepartmentData?.employees?.map((item) => (
+                                <div key={item._id} className="p-3 flex items-center justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <div className="font-medium truncate">{item.firstname} {item.lastname}</div>
+                                        <div className="text-xs text-gray-500 truncate">{item.email}</div>
+                                        <div className="text-xs text-gray-500 truncate">{item.contactnumber}</div>
+                                    </div>
+                                    <div className="shrink-0">
+                                        <RemoveEmployeeFromDepartmentDialogBox DepartmentName={CurrentDepartmentData.name} DepartmentID={CurrentDepartmentData._id} EmployeeID={item._id} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {viewMode === "grid" && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {CurrentDepartmentData?.employees?.map((item) => (
+                                <div key={item._id} className="rounded-xl ring-1 ring-gray-200 bg-white p-3 space-y-1">
+                                    <div className="font-medium">{item.firstname} {item.lastname}</div>
+                                    <div className="text-xs text-gray-500">{item.email}</div>
+                                    <div className="text-xs text-gray-500">{item.contactnumber}</div>
+                                    <div className="pt-1 flex justify-end">
+                                        <RemoveEmployeeFromDepartmentDialogBox DepartmentName={CurrentDepartmentData.name} DepartmentID={CurrentDepartmentData._id} EmployeeID={item._id} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </TabsContent>
                 <TabsContent value="password" className={`rounded-lg border border-gray-200 bg-white/80 backdrop-blur min-[250px]:h-[100%] md:h-[85%] min-[1650px]:h-[90%] overflow-auto p-2`}>
                     <HeadingBar table_layout={"grid-cols-4"} table_headings={table_headings_notice} />

@@ -1,10 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { HandleDeleteHRAttendance, HandleGetHRAttendance, HandleGetHRAttendanceByEmployee } from "../Thunks/HRAttendanceThunk";
+import {
+    HandleCheckIn,
+    HandleCheckOut,
+    HandleGetTodayAttendance,
+    HandleGetMyAttendance
+} from "../Thunks/EmployeeAttendanceThunk";
 
-const HRAttendanceSlice = createSlice({
-    name: "HRAttendance",
+const EmployeeAttendanceSlice = createSlice({
+    name: "EmployeeAttendance",
     initialState: {
-        data: null,
+        todayData: null,
+        myAttendanceData: null,
         isLoading: false,
         success: false,
         fetchData: false,
@@ -15,43 +21,45 @@ const HRAttendanceSlice = createSlice({
         },
     },
     extraReducers: (builder) => {
-        builder.addCase(HandleGetHRAttendance.pending, (state) => {
+        // Get Today Attendance
+        builder.addCase(HandleGetTodayAttendance.pending, (state) => {
             state.isLoading = true;
             state.error.content = null;
         });
-        builder.addCase(HandleGetHRAttendance.fulfilled, (state, action) => {
+        builder.addCase(HandleGetTodayAttendance.fulfilled, (state, action) => {
             state.isLoading = false;
             state.error.status = false;
-            state.data = action.payload.data;
+            state.todayData = action.payload.data;
             state.success = action.payload.success;
             state.fetchData = false;
         });
-        builder.addCase(HandleGetHRAttendance.rejected, (state, action) => {
+        builder.addCase(HandleGetTodayAttendance.rejected, (state, action) => {
             state.isLoading = false;
             state.error.status = true;
             state.error.message = action.payload?.message;
             state.error.content = action.payload;
         });
 
-        // Get Attendance By Employee
-        builder.addCase(HandleGetHRAttendanceByEmployee.pending, (state) => {
+        // Get My Attendance
+        builder.addCase(HandleGetMyAttendance.pending, (state) => {
             state.isLoading = true;
             state.error.content = null;
         });
-        builder.addCase(HandleGetHRAttendanceByEmployee.fulfilled, (state, action) => {
+        builder.addCase(HandleGetMyAttendance.fulfilled, (state, action) => {
             state.isLoading = false;
             state.error.status = false;
-            state.data = action.payload.data;
+            state.myAttendanceData = action.payload.data;
             state.success = action.payload.success;
             state.fetchData = false;
         });
-        builder.addCase(HandleGetHRAttendanceByEmployee.rejected, (state, action) => {
+        builder.addCase(HandleGetMyAttendance.rejected, (state, action) => {
             state.isLoading = false;
             state.error.status = true;
             state.error.message = action.payload?.message;
             state.error.content = action.payload;
         });
 
+        // Check In/Out
         const onWritePending = (state) => {
             state.isLoading = true;
             state.error.content = null;
@@ -60,6 +68,7 @@ const HRAttendanceSlice = createSlice({
             state.isLoading = false;
             state.error.status = false;
             state.success = action.payload.success;
+            state.todayData = action.payload.data;
             state.fetchData = true;
         };
         const onWriteRejected = (state, action) => {
@@ -69,12 +78,15 @@ const HRAttendanceSlice = createSlice({
             state.error.content = action.payload;
         };
 
-        builder.addCase(HandleDeleteHRAttendance.pending, onWritePending);
-        builder.addCase(HandleDeleteHRAttendance.fulfilled, onWriteFulfilled);
-        builder.addCase(HandleDeleteHRAttendance.rejected, onWriteRejected);
+        builder.addCase(HandleCheckIn.pending, onWritePending);
+        builder.addCase(HandleCheckIn.fulfilled, onWriteFulfilled);
+        builder.addCase(HandleCheckIn.rejected, onWriteRejected);
+
+        builder.addCase(HandleCheckOut.pending, onWritePending);
+        builder.addCase(HandleCheckOut.fulfilled, onWriteFulfilled);
+        builder.addCase(HandleCheckOut.rejected, onWriteRejected);
     },
 });
 
-export default HRAttendanceSlice.reducer;
-
+export default EmployeeAttendanceSlice.reducer;
 

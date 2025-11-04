@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { EmployeeDetailsDialogBox, UpdateEmployeeDialogBox, DeleteEmployeeDialogBox } from "./dialogboxes";
+;
 
 export const EmployeesTable = ({ employees = [] }) => {
     const [query, setQuery] = useState("");
@@ -16,6 +17,8 @@ export const EmployeesTable = ({ employees = [] }) => {
     const [sortBy, setSortBy] = useState({ key: "firstname", dir: "asc" });
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const initialMode = (typeof window !== "undefined" && window.innerWidth < 768) ? "grid" : "table"
+    const [viewMode, setViewMode] = useState(initialMode) // table | list | grid
 
     const departments = useMemo(() => {
         const depts = new Set();
@@ -93,6 +96,14 @@ export const EmployeesTable = ({ employees = [] }) => {
                         <option key={dept} value={dept}>{dept}</option>
                     ))}
                 </select>
+                {/* View toggles - placed before size dropdown */}
+                <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">View:</span>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "list" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("list")}>List</button>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "grid" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("grid")}>Grid</button>
+                    <button className={`px-2 py-1 rounded border text-sm ${viewMode === "table" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("table")}>Table</button>
+                </div>
+
                 <div className="ml-auto flex items-center gap-2">
                     <span className="text-sm text-gray-500">Rows</span>
                     <select
@@ -108,7 +119,8 @@ export const EmployeesTable = ({ employees = [] }) => {
                 </div>
             </div>
 
-            <div className="rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur">
+            {/* Desktop table; also used on mobile if table mode selected */}
+            <div className={`rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur overflow-x-auto ${viewMode !== "table" ? "hidden" : "block"}`}>
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -140,6 +152,51 @@ export const EmployeesTable = ({ employees = [] }) => {
                     </TableBody>
                 </Table>
             </div>
+
+            {/* Mobile List View */}
+            {viewMode === "list" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-2">
+                    <div className="divide-y rounded-2xl ring-1 ring-gray-200/60 bg-white/80 backdrop-blur">
+                        {pageData.map((emp) => (
+                            <div key={emp._id} className="p-3 flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                    <div className="font-medium truncate">{emp.firstname} {emp.lastname}</div>
+                                    <div className="text-xs text-gray-500 truncate">{emp.email || "-"}</div>
+                                    <div className="text-xs text-gray-500 truncate">{emp.department?.name || emp.department?.toString() || "Not Specified"} • {emp.designation?.name || emp.designation?.toString() || "Not Specified"}</div>
+                                    <div className="text-xs text-gray-500 truncate">{emp.contactnumber || "-"}</div>
+                                </div>
+                                <div className="shrink-0">
+                                    <div className="flex justify-end gap-2">
+                                        <EmployeeDetailsDialogBox EmployeeID={emp._id} />
+                                        <UpdateEmployeeDialogBox employee={emp} />
+                                        <DeleteEmployeeDialogBox EmployeeID={emp._id} />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Mobile Grid View */}
+            {viewMode === "grid" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {pageData.map((emp) => (
+                        <div key={emp._id} className="rounded-xl ring-1 ring-gray-200 bg-white p-3 space-y-1">
+                            <div className="font-medium">{emp.firstname} {emp.lastname}</div>
+                            <div className="text-xs text-gray-500">{emp.email || "-"}</div>
+                            <div className="text-xs text-gray-500">{emp.department?.name || emp.department?.toString() || "Not Specified"}</div>
+                            <div className="text-xs text-gray-500">{emp.designation?.name || emp.designation?.toString() || "Not Specified"}</div>
+                            <div className="text-xs text-gray-500">{emp.contactnumber || "-"}</div>
+                            <div className="pt-1 flex justify-end gap-2">
+                                <EmployeeDetailsDialogBox EmployeeID={emp._id} />
+                                <UpdateEmployeeDialogBox employee={emp} />
+                                <DeleteEmployeeDialogBox EmployeeID={emp._id} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-500">Page {currentPage} of {totalPages} (Total {sorted.length})</div>

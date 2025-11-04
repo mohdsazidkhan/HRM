@@ -11,13 +11,9 @@ import SalaryRouter from './routes/Salary.route.js'
 import NoticeRouter from "./routes/Notice.route.js"
 import LeaveRouter from './routes/Leave.route.js'
 import AttendanceRouter from './routes/Attendance.route.js'
-import RecruitmentRouter from './routes/Recuritment.route.js'
-import ApplicantRouter from './routes/Applicant.route.js'
-import InterviewInsightRouter from './routes/InterviewInsights.route.js'
 import GenerateRequestRouter from './routes/GenerateRequest.route.js'
-import CorporateCalendarRouter from './routes/CorporateCalendar.route.js'
 import DesignationRouter from './routes/Designation.route.js'
-import BalanceRouter from './routes/Balance.route.js'
+import SalarySetRouter from './routes/SalarySet.route.js'
 import { ConnectDB } from './config/connectDB.js';
 import cookieParser from 'cookie-parser';
 import cors from "cors"
@@ -49,25 +45,17 @@ app.use("/api/v1/department", DepartmentRouter)
 
 app.use("/api/v1/salary", SalaryRouter)
 
+app.use("/api/v1/salary-set", SalarySetRouter)
+
 app.use("/api/v1/notice", NoticeRouter)
 
 app.use("/api/v1/leave", LeaveRouter)
 
 app.use("/api/v1/attendance", AttendanceRouter)
 
-app.use("/api/v1/recruitment", RecruitmentRouter)
-
-app.use("/api/v1/applicant", ApplicantRouter)
-
-app.use("/api/v1/interview-insights", InterviewInsightRouter)
-
 app.use("/api/v1/generate-request", GenerateRequestRouter)
 
-app.use("/api/v1/corporate-calendar", CorporateCalendarRouter)
-
 app.use("/api/v1/designation", DesignationRouter)
-
-app.use("/api/v1/balance", BalanceRouter)
 
 app.listen(process.env.PORT, async () => {
   await ConnectDB()

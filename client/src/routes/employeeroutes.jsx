@@ -9,6 +9,7 @@ import { EntryPage } from "../pages/Employees/EntryPage.jsx"
 // import { VerifyEmailPage } from "../pages/common/verifyemailpage.jsx"
 import { EmployeeMyLeavesPage } from "../pages/Employees/myleaves.jsx"
 import { EmployeeMyRequestsPage } from "../pages/Employees/myrequests.jsx"
+import { MyAttendancePage } from "../pages/Employees/myattendance.jsx"
 
 export const EmployeeRoutes = [
     {
@@ -22,6 +23,7 @@ export const EmployeeRoutes = [
             { index: true, element: <EmployeeDashboard /> },
             { path: "leaves", element: <EmployeeMyLeavesPage /> },
             { path: "requests", element: <EmployeeMyRequestsPage /> },
+            { path: "attendance", element: <MyAttendancePage /> },
         ]
     },
     {

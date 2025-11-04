@@ -3,7 +3,7 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva } from "class-variance-authority";
 import { PanelLeft } from "lucide-react"
 
-import { useIsMobile } from "@/hooks/use-mobile"
+
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -47,7 +47,7 @@ const SidebarProvider = React.forwardRef((
   },
   ref
 ) => {
-  const isMobile = useIsMobile()
+  const isMobile = (typeof window !== "undefined" && window.innerWidth < 768) ? "grid" : "table"
   const [openMobile, setOpenMobile] = React.useState(false)
 
   // This is the internal state of the sidebar.
@@ -114,8 +114,11 @@ const SidebarProvider = React.forwardRef((
               ...style
             }
           }
+          data-state={state}
           className={cn(
             "group/sidebar-wrapper flex w-full has-[[data-variant=inset]]:bg-sidebar",
+            // Shift main content on desktop when sidebar is expanded; remove padding when collapsed/offcanvas
+            "md:transition-[padding] md:duration-200 md:ease-linear md:data-[state=expanded]:pl-[--sidebar-width] md:data-[state=collapsed]:pl-0",
             className
           )}
           ref={ref}
@@ -202,6 +205,7 @@ const Sidebar = React.forwardRef((
           variant === "floating" || variant === "inset"
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
             : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
+         
           className
         )}
         {...props}>
@@ -343,7 +347,7 @@ const SidebarGroup = React.forwardRef(({ className, ...props }, ref) => {
     (<div
       ref={ref}
       data-sidebar="group"
-      className={cn("relative flex w-full min-w-0 pt-16 flex-col", className)}
+      className={cn("relative flex w-full min-w-0 flex-col pt-0 lg:pt-16", className)}
       {...props} />)
   );
 })

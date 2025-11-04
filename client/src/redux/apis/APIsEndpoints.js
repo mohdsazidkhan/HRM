@@ -60,21 +60,7 @@ export const HRNoticePageEndPoints = {
     DELETE: (noticeID) => `/api/v1/notice/delete-notice/${noticeID}`,
 }
 
-export const HRRecruitmentPageEndPoints = {
-    GETALL: "/api/v1/recruitment/all",
-    CREATE: "/api/v1/recruitment/create-recruitment",
-    GETONE: (recruitmentID) => `/api/v1/recruitment/${recruitmentID}`,
-    UPDATE: "/api/v1/recruitment/update-recruitment",
-    DELETE: (recruitmentID) => `/api/v1/recruitment/delete-recruitment/${recruitmentID}`,
-}
 
-export const HRInterviewInsightsPageEndPoints = {
-    GETALL: "/api/v1/interview-insights/all",
-    CREATE: "/api/v1/interview-insights/create-interview",
-    GETONE: (interviewID) => `/api/v1/interview-insights/${interviewID}`,
-    UPDATE: "/api/v1/interview-insights/update-interview",
-    DELETE: (interviewID) => `/api/v1/interview-insights/delete-interview/${interviewID}`,
-}
 
 export const HRSalaryPageEndPoints = {
     GETALL: "/api/v1/salary/all",
@@ -82,6 +68,14 @@ export const HRSalaryPageEndPoints = {
     GETONE: (salaryID) => `/api/v1/salary/${salaryID}`,
     UPDATE: "/api/v1/salary/update-salary",
     DELETE: (salaryID) => `/api/v1/salary/delete-salary/${salaryID}`,
+}
+
+export const HRSalarySetEndPoints = {
+    GETALL: "/api/v1/salary-set/all",
+    GETACTIVE: "/api/v1/salary-set/active",
+    CREATE: "/api/v1/salary-set/create",
+    UPDATE: "/api/v1/salary-set/update",
+    DELETE: (id) => `/api/v1/salary-set/delete/${id}`,
 }
 
 export const HRLeavesPageEndPoints = {
@@ -95,10 +89,16 @@ export const HRLeavesPageEndPoints = {
 
 export const HRAttendancePageEndPoints = {
     GETALL: "/api/v1/attendance/all",
-    CREATE: "/api/v1/attendance/initialize",
     GETONE: (attendanceID) => `/api/v1/attendance/${attendanceID}`,
-    UPDATE: "/api/v1/attendance/update-attendance",
-    DELETE: (attendanceID) => `/api/v1/attendance/delete-attendance/${attendanceID}`,
+    GET_BY_EMPLOYEE: (employeeID) => `/api/v1/attendance/employee/${employeeID}/attendance`,
+    DELETE: (attendanceID) => `/api/v1/attendance/${attendanceID}`,
+}
+
+export const EmployeeAttendanceEndPoints = {
+    CHECK_IN: "/api/v1/attendance/check-in",
+    CHECK_OUT: "/api/v1/attendance/check-out",
+    GET_TODAY: "/api/v1/attendance/today",
+    GET_MY_ATTENDANCE: "/api/v1/attendance/my-attendance",
 }
 
 export const HRRequestsPageEndPoints = {
@@ -117,26 +117,3 @@ export const HRProfilesPageEndPoints = {
     DELETE: (HRID) => `/api/v1/HR/delete-HR/${HRID}`,
 }
 
-export const HRCalendarPageEndPoints = {
-    GETALL: "/api/v1/corporate-calendar/all",
-    CREATE: "/api/v1/corporate-calendar/create-event",
-    GETONE: (eventID) => `/api/v1/corporate-calendar/${eventID}`,
-    UPDATE: "/api/v1/corporate-calendar/update-event",
-    DELETE: (eventID) => `/api/v1/corporate-calendar/delete-event/${eventID}`,
-}
-
-export const HRBalancePageEndPoints = {
-    GETALL: "/api/v1/balance/all",
-    CREATE: "/api/v1/balance/add-balance",
-    GETONE: (balanceID) => `/api/v1/balance/${balanceID}`,
-    UPDATE: "/api/v1/balance/update-balance",
-    DELETE: (balanceID) => `/api/v1/balance/delete-balance/${balanceID}`,
-}
-
-export const HRApplicantsPageEndPoints = {
-    GETALL: "/api/v1/applicant/all",
-    CREATE: "/api/v1/applicant/create-applicant",
-    GETONE: (applicantID) => `/api/v1/applicant/${applicantID}`,
-    UPDATE: "/api/v1/applicant/update-applicant",
-    DELETE: (applicantID) => `/api/v1/applicant/delete-applicant/${applicantID}`,
-}

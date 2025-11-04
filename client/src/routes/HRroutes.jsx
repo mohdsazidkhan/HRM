@@ -15,16 +15,12 @@ import { HREmployeesPage } from "../pages/HumanResources/Dashboard Childs/employ
 import { HRDepartmentPage } from "../pages/HumanResources/Dashboard Childs/departmentpage.jsx"
 import { HRDesignationPage } from "../pages/HumanResources/Dashboard Childs/designationpage.jsx"
 import { HRNoticesPage } from "../pages/HumanResources/Dashboard Childs/noticespage.jsx"
-import { HRRecruitmentPage } from "../pages/HumanResources/Dashboard Childs/recruitmentpage.jsx"
 import { HRSalariesPage } from "../pages/HumanResources/Dashboard Childs/salariespage.jsx"
+import { HRSalarySetsPage } from "../pages/HumanResources/Dashboard Childs/salarysetspage.jsx"
 import { HRLeavesPage } from "../pages/HumanResources/Dashboard Childs/leavespage.jsx"
 import { HRAttendancesPage } from "../pages/HumanResources/Dashboard Childs/attendancespage.jsx"
-import { HRInterviewInsightsPage } from "../pages/HumanResources/Dashboard Childs/interviewinsightspage.jsx"
 import { HRRequestsPage } from "../pages/HumanResources/Dashboard Childs/requestspage.jsx"
 import { HRProfilesPage } from "../pages/HumanResources/Dashboard Childs/hrprofilespage.jsx"
-import { HRCorporateCalendarPage } from "../pages/HumanResources/Dashboard Childs/corporatecalendarpage.jsx"
-import { HRBalancePage } from "../pages/HumanResources/Dashboard Childs/balancepage.jsx"
-import { HRApplicantsPage } from "../pages/HumanResources/Dashboard Childs/applicantspage.jsx"
 export const HRRoutes = [
     {
         path: "/admin/auth/signup",
@@ -67,12 +63,12 @@ export const HRRoutes = [
                 element: <HRNoticesPage />
             },
             {
-                path: "recruitment",
-                element: <HRRecruitmentPage />
-            },
-            {
                 path: "salaries",
                 element: <HRSalariesPage />
+            },
+            {
+                path: "salary-sets",
+                element: <HRSalarySetsPage />
             },
             {
                 path: "leaves",
@@ -83,28 +79,12 @@ export const HRRoutes = [
                 element: <HRAttendancesPage />
             },
             {
-                path: "interview-insights",
-                element: <HRInterviewInsightsPage />
-            },
-            {
                 path: "requests",
                 element: <HRRequestsPage />
             },
             {
                 path: "hr-profiles",
                 element: <HRProfilesPage />
-            },
-            {
-                path: "calendar",
-                element: <HRCorporateCalendarPage />
-            },
-            {
-                path: "balance",
-                element: <HRBalancePage />
-            },
-            {
-                path: "applicants",
-                element: <HRApplicantsPage />
             }
         ]
     },

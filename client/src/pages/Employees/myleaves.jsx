@@ -67,7 +67,9 @@ export const EmployeeMyLeavesPage = () => {
                 </div>
             </CardShell>
 
-            <LeavesTable leaves={Array.isArray(data?.leaverequest) ? data.leaverequest : []} onUpdate={updateLeave} />
+            <div className="overflow-x-auto rounded-2xl">
+                <LeavesTable leaves={Array.isArray(data?.leaverequest) ? data.leaverequest : []} onUpdate={updateLeave} />
+            </div>
             {error?.status && (
                 <div className="p-3 text-red-600 rounded-lg bg-red-50">{error.message}</div>
             )}

@@ -6,8 +6,6 @@ import HREmployeesPageReducer from '../Slices/HREmployeesPageSlice.js'
 import HRDepartmentPageReducer from '../Slices/HRDepartmentPageSlice.js'
 import HRDesignationPageReducer from '../Slices/HRDesignationPageSlice.js'
 import HRNoticesReducer from '../Slices/HRNoticesSlice.js'
-import HRRecruitmentReducer from '../Slices/HRRecruitmentSlice.js'
-import HRInterviewInsightsReducer from '../Slices/HRInterviewInsightsSlice.js'
 import HRSalaryReducer from '../Slices/HRSalarySlice.js'
 import HRLeavesReducer from '../Slices/HRLeavesSlice.js'
 import HRAttendanceReducer from '../Slices/HRAttendanceSlice.js'
@@ -15,9 +13,8 @@ import HRRequestsReducer from '../Slices/HRRequestsSlice.js'
 import HRProfilesReducer from '../Slices/HRProfilesSlice.js'
 import EMployeesIDReducer from '../Slices/EmployeesIDsSlice.js'
 import EmployeeSelfReducer from '../Slices/EmployeeSelfSlice.js'
-import HRCalendarReducer from '../Slices/HRCalendarSlice.js'
-import HRBalanceReducer from '../Slices/HRBalanceSlice.js'
-import HRApplicantsReducer from '../Slices/HRApplicantsSlice.js'
+import HRSalarySetPageReducer from '../Slices/HRSalarySetPageSlice.js'
+import EmployeeAttendanceReducer from '../Slices/EmployeeAttendanceSlice.js'
 
 export const store = configureStore({
     reducer: {
@@ -29,16 +26,13 @@ export const store = configureStore({
         HRDesignationPageReducer : HRDesignationPageReducer,
         EMployeesIDReducer : EMployeesIDReducer,
         HRNoticesReducer: HRNoticesReducer,
-        HRRecruitmentReducer: HRRecruitmentReducer,
-        HRInterviewInsightsReducer: HRInterviewInsightsReducer,
         HRSalaryReducer: HRSalaryReducer,
+        HRSalarySetPageReducer: HRSalarySetPageReducer,
         HRLeavesReducer: HRLeavesReducer,
         HRAttendanceReducer: HRAttendanceReducer,
         HRRequestsReducer: HRRequestsReducer,
         HRProfilesReducer: HRProfilesReducer,
         EmployeeSelfReducer: EmployeeSelfReducer,
-        HRCalendarReducer: HRCalendarReducer,
-        HRBalanceReducer: HRBalanceReducer,
-        HRApplicantsReducer: HRApplicantsReducer
+        EmployeeAttendanceReducer: EmployeeAttendanceReducer
     }
 })

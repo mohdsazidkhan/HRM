@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 ;
 import { DeleteLeaveDialogBox } from "./dialogboxes";
 
-export const LeavesTable = ({ leaves = [], onUpdate }) => {
+export const LeavesTable = ({ leaves = [], onUpdate, disableLocalPagination = false }) => {
     const [query, setQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [sortBy, setSortBy] = useState({ key: "startdate", dir: "desc" });
@@ -21,9 +21,27 @@ export const LeavesTable = ({ leaves = [], onUpdate }) => {
     const isMobile = (typeof window !== "undefined" && window.innerWidth < 768) ? "grid" : "table";
     const [viewMode, setViewMode] = useState(isMobile ? "grid" : "table");
 
+    const toTitleCase = (str) => {
+        if (!str) return "";
+        const s = str.toString();
+        return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+    };
+
+    const normalized = useMemo(() => {
+        return (Array.isArray(leaves) ? leaves : []).map((l) => {
+            const startdate = l.startdate || l.startDate || l.from || null;
+            const enddate = l.enddate || l.endDate || l.to || null;
+            const title = l.title || l.requesttitle || l.leaveTitle || "";
+            const reason = l.reason || l.requestconent || l.leaveReason || "";
+            const statusRaw = l.status || l.currentStatus || l.state || "Pending";
+            const status = toTitleCase(statusRaw);
+            return { ...l, title, reason, startdate, enddate, status };
+        });
+    }, [leaves]);
+
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
-        return (Array.isArray(leaves) ? leaves : [])
+        return normalized
             .filter((l) => (statusFilter ? (l.status || "").toLowerCase() === statusFilter : true))
             .filter((l) => {
                 if (!q) return true;
@@ -32,7 +50,7 @@ export const LeavesTable = ({ leaves = [], onUpdate }) => {
                     (l.reason || "").toLowerCase().includes(q)
                 );
             });
-    }, [leaves, query, statusFilter]);
+    }, [normalized, query, statusFilter]);
 
     const sorted = useMemo(() => {
         const arr = [...filtered];
@@ -48,12 +66,13 @@ export const LeavesTable = ({ leaves = [], onUpdate }) => {
         return arr;
     }, [filtered, sortBy]);
 
-    const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
-    const currentPage = Math.min(page, totalPages);
+    const totalPages = disableLocalPagination ? 1 : Math.max(1, Math.ceil(sorted.length / pageSize));
+    const currentPage = disableLocalPagination ? 1 : Math.min(page, totalPages);
     const pageData = useMemo(() => {
+        if (disableLocalPagination) return sorted;
         const start = (currentPage - 1) * pageSize;
         return sorted.slice(start, start + pageSize);
-    }, [sorted, currentPage, pageSize]);
+    }, [sorted, currentPage, pageSize, disableLocalPagination]);
 
     const toggleSort = (key) => {
         setSortBy((prev) => {
@@ -89,6 +108,7 @@ export const LeavesTable = ({ leaves = [], onUpdate }) => {
                     <button className={`px-2 py-1 rounded border text-sm ${viewMode === "table" ? "bg-gray-100" : ""}`} onClick={() => setViewMode("table")}>Table</button>
                 </div>
 
+                {!disableLocalPagination && (
                 <div className="ml-auto flex items-center gap-2">
                     <span className="text-sm text-gray-500">Rows</span>
                     <select
@@ -102,6 +122,7 @@ export const LeavesTable = ({ leaves = [], onUpdate }) => {
                         <option value={50}>50</option>
                     </select>
                 </div>
+                )}
             </div>
 
             <div className={`rounded-2xl shadow-sm ring-1 ring-gray-200/60 bg-white/80 backdrop-blur overflow-x-auto ${viewMode !== "table" ? "hidden" : "block"}`}>
@@ -179,6 +200,7 @@ export const LeavesTable = ({ leaves = [], onUpdate }) => {
                 </div>
             )}
 
+            {!disableLocalPagination && (
             <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-500">Page {currentPage} of {totalPages} (Total {sorted.length})</div>
                 <div className="flex items-center gap-2">
@@ -188,6 +210,7 @@ export const LeavesTable = ({ leaves = [], onUpdate }) => {
                     <Button variant="outline" size="default" onClick={() => setPage(totalPages)} disabled={currentPage === totalPages}>Last</Button>
                 </div>
             </div>
+            )}
         </div>
     );
 };

@@ -3,6 +3,69 @@ import { HumanResources } from "../models/HR.model.js"
 import { Leave } from "../models/Leave.model.js"
 
 
+export const HandleEmployeeLeavesList = async (req, res) => {
+    try {
+        const employeeId = req.EMid;
+        const orgId = req.ORGID;
+
+        const {
+            page = 1,
+            limit = 10,
+            search = "",
+            status = "",
+            startDate = "",
+            endDate = "",
+            sortBy = "createdAt",
+            sortDir = "desc",
+        } = req.query;
+
+        const pageNum = Math.max(1, parseInt(page));
+        const pageSize = Math.min(100, Math.max(1, parseInt(limit)));
+
+        const query = { employee: employeeId, organizationID: orgId };
+
+        if (status) {
+            query.status = { $regex: new RegExp(`^${status}$`, "i") };
+        }
+
+        if (search) {
+            const rx = new RegExp(search, "i");
+            query.$or = [{ title: rx }, { reason: rx }];
+        }
+
+        if (startDate || endDate) {
+            query.startdate = {};
+            if (startDate) query.startdate.$gte = new Date(startDate);
+            if (endDate) query.startdate.$lte = new Date(endDate);
+        }
+
+        const sort = { [sortBy]: sortDir === "asc" ? 1 : -1 };
+
+        const [items, total] = await Promise.all([
+            Leave.find(query)
+                .sort(sort)
+                .skip((pageNum - 1) * pageSize)
+                .limit(pageSize)
+                .lean(),
+            Leave.countDocuments(query),
+        ]);
+
+        return res.status(200).json({
+            success: true,
+            message: "Employee leaves fetched",
+            data: items,
+            pagination: {
+                page: pageNum,
+                limit: pageSize,
+                total,
+                totalPages: Math.max(1, Math.ceil(total / pageSize)),
+            },
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
+    }
+};
+
 export const HandleCreateLeave = async (req, res) => {
     try {
         const { employeeID, startdate, enddate, title, reason } = req.body

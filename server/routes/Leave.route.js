@@ -1,5 +1,5 @@
 import express from 'express'
-import { HandleAllLeaves, HandleCreateLeave, HandleDeleteLeave, HandleLeave, HandleUpdateLeaveByEmployee, HandleUpdateLeavebyHR } from '../controllers/Leave.controller.js'
+import { HandleAllLeaves, HandleCreateLeave, HandleDeleteLeave, HandleEmployeeLeavesList, HandleLeave, HandleUpdateLeaveByEmployee, HandleUpdateLeavebyHR } from '../controllers/Leave.controller.js'
 import { VerifyEmployeeToken, VerifyhHRToken } from '../middlewares/Auth.middleware.js'
 import { RoleAuthorization } from '../middlewares/RoleAuth.middleware.js'
 
@@ -7,6 +7,8 @@ import { RoleAuthorization } from '../middlewares/RoleAuth.middleware.js'
 const router = express.Router()
 
 router.post("/create-leave", VerifyEmployeeToken, HandleCreateLeave)
+
+router.get("/my", VerifyEmployeeToken, HandleEmployeeLeavesList)
 
 router.get("/all", VerifyhHRToken, RoleAuthorization("HR-Admin"), HandleAllLeaves)
 

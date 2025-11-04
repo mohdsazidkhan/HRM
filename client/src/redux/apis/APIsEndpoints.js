@@ -87,6 +87,10 @@ export const HRLeavesPageEndPoints = {
     DELETE: (leaveID) => `/api/v1/leave/delete-leave/${leaveID}`,
 }
 
+export const EmployeeLeavesEndPoints = {
+    MY_LIST: "/api/v1/leave/my",
+}
+
 export const HRAttendancePageEndPoints = {
     GETALL: "/api/v1/attendance/all",
     GETONE: (attendanceID) => `/api/v1/attendance/${attendanceID}`,

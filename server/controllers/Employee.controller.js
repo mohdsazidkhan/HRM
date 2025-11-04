@@ -52,6 +52,11 @@ export const HandleEmployeeByEmployee = async (req, res) => {
             .populate("attendance", "status attendancelog updatedAt createdAt")
             .populate("generaterequest", "requesttitle requestconent status createdAt")
             .populate("notice", "title audience createdAt")
+            .populate({
+                path: "leaverequest",
+                select: "title reason startdate enddate status createdAt",
+                options: { sort: { createdAt: -1 } }
+            })
 
         if (!employee) {
             return res.status(404).json({ success: false, message: "employee not found" })
@@ -60,7 +65,7 @@ export const HandleEmployeeByEmployee = async (req, res) => {
         // Also include department-specific notices
         const deptId = employee.department?._id || employee.department
         if (deptId) {
-            const deptNotices = await Notice.find({ department: deptId, organizationID: req.ORGID })
+        const deptNotices = await Notice.find({ department: deptId, organizationID: req.ORGID })
                 .select("title audience createdAt")
                 .sort({ createdAt: -1 })
                 .limit(10)

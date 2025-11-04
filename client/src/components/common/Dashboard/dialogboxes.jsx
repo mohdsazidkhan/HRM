@@ -1474,7 +1474,7 @@ export const UpdateSalarySetDialogBox = ({ salarySet }) => {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline">Update</Button>
+                <Button>Update</Button>
             </DialogTrigger>
             <DialogContent className="max-w-[315px] sm:max-w-[50vw] 2xl:max-w-[45vw]">
                 <div className="grid gap-3">
@@ -1512,7 +1512,7 @@ export const DeleteSalarySetDialogBox = ({ salarySetID, salarySetName }) => {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="destructive">Delete</Button>
+                <Button>Delete</Button>
             </DialogTrigger>
             <DialogContent className="max-w-[315px] lg:max-w-[35vw] 2xl:max-w-[30vw]">
                 <div className="flex flex-col justify-center items-center gap-4">
